@@ -11,7 +11,7 @@ PseudoPeriodic = ts.signals.PseudoPeriodic(frequency=0.1)
 # Initializing Gaussian noise
 white_noise = ts.noise.GaussianNoise(std=0.3)
 # Initializing TimeSeries class with the signal and noise objects
-timeseries = ts.TimeSeries(PseudoPeriodic, noise_generator=white_noise)
+timeseries = ts.TimeSeries(PseudoPeriodic, noise_generator=None)
 # Sampling using the irregular time samples
 samples, signals, errors = timeseries.sample(irregular_time_samples)
 
