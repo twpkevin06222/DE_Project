@@ -78,19 +78,30 @@ def resize(img_list, NEW_SIZE):
     return new_img_list
 
 def tiff(dir_path):
+    '''
+    Read .tif extension
+
+    :param dir_path: directory path where data is stored
+    :return:
+        shape of the particular tif file, arrays of the tif file
+    '''
     im = sktiff.imread(dir_path)
     return im.shape, im
 
-def append_tiff(path, verbose = True):
+def append_tiff(path, verbose = True, timer = False):
     '''
     Append tiff image from path
+
     :param path: data directory
     :param verbose: output directory info
+    :param timer: time measurement
     :return:
         list of tiff images, list of directories of tiff images
     '''
-    tiff_list = []
+    start = time.time()
+
     dir_list = []
+    image_stack = []
     for main_dir in sorted(os.listdir(path)):
         if verbose:
             print('Directory of mice index:', main_dir)
@@ -101,11 +112,19 @@ def append_tiff(path, verbose = True):
         for file in sorted(os.listdir(merge_dir)):
             tif = glob.glob('{}/*.tif'.format(os.path.join(merge_dir + '/' + file)))
 
-            if verbose:
-                print(tif)
-
             shape, im = tiff(tif)
-            tiff_list.append(im)
             dir_list.append(main_dir + '/' + file)
 
-    return(tiff_list, dir_list)
+            if verbose:
+                print('{}, {}'.format(tif, shape))
+
+            for i in range(shape[0]):  # shape[0] = number of frames
+                image_stack.append(im[i, :, :])
+
+    images = np.asarray(image_stack)
+    end = time.time()
+    if timer == True:
+        print('Total time elapsed: ', end - start)
+
+    return images, dir_list
+
