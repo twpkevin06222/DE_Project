@@ -6,6 +6,7 @@ from PIL import Image
 import numpy as np
 #import timesynth as ts
 import matplotlib.pyplot as plt
+import scipy.io
 from skimage.external import tifffile as sktiff
 
 def time_series_generator(stop_time, num_points, frequency, noise = None, std = 0.1):
