@@ -114,17 +114,50 @@ def append_tiff(path, verbose = True, timer = False):
 
             shape, im = tiff(tif)
             dir_list.append(main_dir + '/' + file)
+            image_stack.append(im)
 
             if verbose:
                 print('{}, {}'.format(tif, shape))
 
-            for i in range(shape[0]):  # shape[0] = number of frames
-                image_stack.append(im[i, :, :])
-
     images = np.asarray(image_stack)
     end = time.time()
+
     if timer == True:
         print('Total time elapsed: ', end - start)
 
     return images, dir_list
 
+
+def mat_2_npy(input_path, save_path):
+    '''
+    convert arrays in .mat to numpy array .npy
+
+    input_path: path where data files of LIN is store, no need on specific path of .mat!
+    save_path: where .npy is save
+    '''
+    for main_dir in sorted(os.listdir(input_path)):
+        print('Directory of mice index:', main_dir)
+        merge_dir = os.path.join(input_path + main_dir)
+
+        print('Directory of .mat files stored:')
+        print()
+        for file in sorted(os.listdir(merge_dir)):
+            mat_list = glob.glob('{}/*.mat'.format(os.path.join(merge_dir + '/' + file)))
+            for mat in mat_list:
+
+                print(mat)
+                # obtain file name .mat for new file name during the conversion
+                mat_dir_split = mat.split(os.sep)
+                mat_name = mat_dir_split[-1]
+                # print(mat_name)
+
+                # returns dict
+                data = scipy.io.loadmat(mat)
+                for i in data:
+                    if '__' not in i and 'readme' not in i:
+                        print(data[i].shape)
+
+                        # save matlab arrays into .npy file
+                        np.save(save_path + "{}_{}.npy".format(mat_name, i), data[i])
+
+    print()
