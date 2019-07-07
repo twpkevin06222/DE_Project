@@ -1,6 +1,3 @@
-#references: https://github.com/titu1994/keras-coordconv/blob/master/experiments/train_uniform_classifier.py
-
-
 import os
 import sys
 import numpy as np
@@ -54,7 +51,7 @@ test_set = np.tile(test_set, [1, 64, 64, 1])
 
 train_set /= (64. - 1.)
 test_set /= (64. - 1.)
-print('Train set : shape: {}, max value:{}, min value: {}'. format(train_set.shape, train_set.max(), train_set.min()))
+print('Train set : shape: {}, max value:{}, min value: {}'.format(train_set.shape, train_set.max(), train_set.min()))
 print('Test set : : shape: {}, max value:{}, min value: {} '.format(test_set.shape, test_set.max(), test_set.min()))
 
 # Plot dataset
