@@ -169,6 +169,7 @@ def mat_2_npy(input_path, save_path):
 def vid_2_frames(vid_path, output_path, extension='.jpg'):
     '''
     Converting video to image sequences with specified extension
+
     Params:
     vid_path: Path where video is stored
     output_path: Path where the converted image should be stored
@@ -254,6 +255,7 @@ def retrieve_filename(file_path):
 def img_to_array(inp_img, RGB=True):
     '''
     Convert single image from RGB or from Grayscale to array
+
     Params:
     inp_img: Desire image to convert to array
     RGB: Convert RGB image to grayscale if FALSE
@@ -270,6 +272,7 @@ def img_to_array(inp_img, RGB=True):
 def imgs_to_arrays(inp_imgs, extension='.jpg', RGB=True, save_as_npy=False, save_path=None):
     '''
     Convert image stacks from RGB or from Grayscale to array
+
     Params:
     inp_imgs: Desire image stacks to convert to array
     extension: input images extension, by DEFAULT '.jpg'
@@ -279,7 +282,7 @@ def imgs_to_arrays(inp_imgs, extension='.jpg', RGB=True, save_as_npy=False, save
     '''
 
     imgs_list = []
-    for imgs in sorted(glob.glob('{}/*'.format(inp_imgs, extension))):
+    for imgs in sorted(glob.glob('{}/*{}'.format(inp_imgs, extension))):
         img_array = img_to_array(imgs, RGB)
         imgs_list.append(img_array)
 
