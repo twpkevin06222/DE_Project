@@ -2,12 +2,14 @@ import os
 import sys
 import time
 import glob
+import cv2
 from PIL import Image
 import numpy as np
 #import timesynth as ts
 import matplotlib.pyplot as plt
 import scipy.io
 from skimage.external import tifffile as sktiff
+import skimage.color
 
 def time_series_generator(stop_time, num_points, frequency, noise = None, std = 0.1):
     '''
@@ -162,3 +164,134 @@ def mat_2_npy(input_path, save_path):
                         np.save(save_path + "{}_{}.npy".format(mat_name, i), data[i])
 
     print()
+
+
+def vid_2_frames(vid_path, output_path, extension='.jpg'):
+    '''
+    Converting video to image sequences with specified extension
+    Params:
+    vid_path: Path where video is stored
+    output_path: Path where the converted image should be stored
+    extension: Desired image extension, by DEFAULT .jpg
+
+    Example:
+        vid_path = '7-12-17-preprocessed.avi'
+        output_path = retrieve_filename(vid_path)
+
+        vid_2_frames(vid_path, output_path, extension = '.jpg')
+
+    Return:
+        >> For:  7-12-17-preprocessed.avi
+
+        >> Creating..../7-12-17-preprocessed/frame_0000.jpg
+        >> Creating..../7-12-17-preprocessed/frame_0001.jpg
+                ...
+    '''
+    # Read the video from specified path
+    cam = cv2.VideoCapture(vid_path)
+
+    try:
+
+        # creating a folder named output_path
+        if not os.path.exists(output_path):
+            os.makedirs(output_path)
+
+            # if not created then raise error
+    except OSError:
+        print('Error: Creating directory of output path')
+
+        # frame
+    currentframe = 0
+
+    print('For: ', vid_path)
+    print()
+
+    while (True):
+
+        # reading from frame
+        ret, frame = cam.read()
+
+        if ret:
+            # if video is still left continue creating images
+            # name = ('./'+ output_path +'/frame_' + str(currentframe) + extension)
+            name = ('./{}/frame_{:04d}{}').format(output_path, currentframe, extension)
+            print('Creating...' + name)
+
+            # writing the extracted images
+            cv2.imwrite(name, frame)
+
+            # increasing counter so that it will
+            # show how many frames are created
+            currentframe += 1
+        else:
+            break
+
+    # Release all space and windows once done
+    cam.release()
+    cv2.destroyAllWindows()
+
+
+def retrieve_filename(file_path):
+    '''
+    Retrieve file name from path and remove file extension
+
+    Example:
+        file_path = 'home/user/Desktop/test.txt'
+        retrieve_filename(file_path)
+    Return:
+        >> test
+    '''
+    base_name = os.path.basename(file_path)
+
+    # extract base name without extension
+    base_name = os.path.splitext(base_name)[0]
+
+    # print(base_name)
+
+    return base_name
+
+
+def img_to_array(inp_img, RGB=True):
+    '''
+    Convert single image from RGB or from Grayscale to array
+    Params:
+    inp_img: Desire image to convert to array
+    RGB: Convert RGB image to grayscale if FALSE
+    '''
+    if RGB:
+        return skimage.io.imread(inp_img)
+    else:
+        img = skimage.io.imread(inp_img)
+        grayscale = skimage.color.rgb2gray(img)
+
+        return grayscale
+
+
+def imgs_to_arrays(inp_imgs, extension='.jpg', RGB=True, save_as_npy=False, save_path=None):
+    '''
+    Convert image stacks from RGB or from Grayscale to array
+    Params:
+    inp_imgs: Desire image stacks to convert to array
+    extension: input images extension, by DEFAULT '.jpg'
+    RGB: Convert RGB image to grayscale if FALSE
+    save_as_npy: Save as .npy extension
+    save_path: Specify save path
+    '''
+
+    imgs_list = []
+    for imgs in sorted(glob.glob('{}/*'.format(inp_imgs, extension))):
+        img_array = img_to_array(imgs, RGB)
+        imgs_list.append(img_array)
+
+    imgs_list = np.asarray(imgs_list)
+
+    if save_as_npy:
+        assert save_path != None, "Save path not specified!"
+        # by default
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+
+        save_name = retrieve_filename(inp_imgs)
+        np.save(save_path + '/{}.npy'.format(save_name), imgs_list)
+
+    return imgs_list
