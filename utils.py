@@ -5,7 +5,6 @@ import glob
 import cv2
 from PIL import Image
 import numpy as np
-#import timesynth as ts
 import matplotlib.pyplot as plt
 import scipy.io
 from skimage.external import tifffile as sktiff
@@ -269,7 +268,8 @@ def img_to_array(inp_img, RGB=True):
         return grayscale
 
 
-def imgs_to_arrays(inp_imgs, extension='.jpg', RGB=True, save_as_npy=False, save_path=None):
+def imgs_to_arrays(inp_imgs, extension='.jpg', RGB=True, save_as_npy=False, img_resize = None, save_path=None):
+
     '''
     Convert image stacks from RGB or from Grayscale to array
 
@@ -280,10 +280,13 @@ def imgs_to_arrays(inp_imgs, extension='.jpg', RGB=True, save_as_npy=False, save
     save_as_npy: Save as .npy extension
     save_path: Specify save path
     '''
+    if img_resize != None:
+        IMG_SIZE = img_resize
 
     imgs_list = []
     for imgs in sorted(glob.glob('{}/*{}'.format(inp_imgs, extension))):
         img_array = img_to_array(imgs, RGB)
+        img_array = cv2.resize(img_array, (IMG_SIZE, IMG_SIZE))
         imgs_list.append(img_array)
 
     imgs_list = np.asarray(imgs_list)
@@ -298,3 +301,4 @@ def imgs_to_arrays(inp_imgs, extension='.jpg', RGB=True, save_as_npy=False, save
         np.save(save_path + '/{}.npy'.format(save_name), imgs_list)
 
     return imgs_list
+
