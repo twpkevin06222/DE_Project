@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import scipy.io
 from skimage.external import tifffile as sktiff
 import skimage.color
+import skimage.io
 from contextlib import suppress
 
 def min_max_norm(images):
@@ -99,8 +100,9 @@ def append_tiff(path, verbose = True, timer = False):
 def mat_2_npy(input_path, save_path):
     '''
     convert arrays in .mat to numpy array .npy
-    
+
     input_path: path where data files of LIN is store, no need on specific path of .mat!
+                input path must be located at Desktop!
     save_path: where .npy is save
     '''
     for main_dir in sorted(os.listdir(input_path)):
@@ -136,7 +138,7 @@ def mat_2_npy(input_path, save_path):
                             #save matlab arrays into .npy file
                             np.save(save_file + "{}_{}_{}.npy".format(date_name, mat_name, i), data[i])
             
-    print()
+            print()
 
 
 def vid_2_frames(vid_path, output_path, extension='.jpg', verbose = False):
@@ -152,7 +154,7 @@ def vid_2_frames(vid_path, output_path, extension='.jpg', verbose = False):
         vid_path = '7-12-17-preprocessed.avi'
         output_path = retrieve_filename(vid_path)
 
-        vid_2_frames(vid_path, output_path, extension = '.jpg', verbose = True)
+        vid_2_frames(vid_path, '/' + output_path, extension = '.jpg', verbose = True)
 
     Return:
         >> For:  7-12-17-preprocessed.avi
@@ -188,8 +190,9 @@ def vid_2_frames(vid_path, output_path, extension='.jpg', verbose = False):
         if ret:
             # if video is still left continue creating images
             # name = ('./'+ output_path +'/frame_' + str(currentframe) + extension)
+
+            name = ('{}/frame_{:04d}{}').format(output_path, currentframe, extension)
             if verbose:
-                name = ('./{}/frame_{:04d}{}').format(output_path, currentframe, extension)
                 print('Creating...' + name)
 
             # writing the extracted images
@@ -225,6 +228,36 @@ def retrieve_filename(file_path):
 
     return base_name
 
+
+def vid2frames_from_files(input_path, save_path):
+    '''
+    Extension of vid_2_frames, which extract .avi from files
+    :param input_path: Directory where all the .avi files is stored
+    :param save_path:  Specify safe path
+    '''
+    for main_dir in sorted(os.listdir(input_path)):
+        print('Directory of mice index:', main_dir)
+        merge_dir = os.path.join(input_path + main_dir)
+
+        print('Directory of .avi files stored:')
+        print()
+        for file in sorted(os.listdir(merge_dir)):
+            avi_list = glob.glob('{}/*.avi'.format(os.path.join(merge_dir + '/' + file)))
+            for avi in avi_list:
+                #print(avi)
+                # obtain file name .mat for new file name during the conversion
+                avi_dir_split = avi.split(os.sep)
+                avi_name = avi_dir_split[-1]
+                # print(avi_name)
+                date_dir_split = file.split(os.sep)
+                date_name = date_dir_split[-1]
+                # print('{}_{}'.format(date_name, avi_name))
+
+                vid_name = retrieve_filename(avi)
+                save_dir = (save_path + '{}_{}'.format(date_name, vid_name))
+                vid_2_frames(avi, save_dir, extension='.jpg')
+
+    print()
 
 def img_to_array(inp_img, RGB=True):
     '''
@@ -269,8 +302,8 @@ def imgs_to_arrays(inp_imgs, extension='.jpg', RGB=True, save_as_npy=False, img_
     if save_as_npy:
         assert save_path != None, "Save path not specified!"
         # by default
-        if not os.path.exists(save_path):
-            os.makedirs(save_path)
+        # if not os.path.exists(save_path):
+        #     os.makedirs(save_path)
 
         save_name = retrieve_filename(inp_imgs)
         np.save(save_path + '/{}.npy'.format(save_name), imgs_list)
