@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import scipy.io
 from skimage.external import tifffile as sktiff
 import skimage.color
+from contextlib import suppress
 
 def min_max_norm(images):
     """
@@ -98,39 +99,47 @@ def append_tiff(path, verbose = True, timer = False):
 def mat_2_npy(input_path, save_path):
     '''
     convert arrays in .mat to numpy array .npy
-
+    
     input_path: path where data files of LIN is store, no need on specific path of .mat!
     save_path: where .npy is save
     '''
     for main_dir in sorted(os.listdir(input_path)):
-        print('Directory of mice index:', main_dir)
+        print('Directory of mice index:',main_dir)
         merge_dir = os.path.join(input_path + main_dir)
 
         print('Directory of .mat files stored:')
         print()
-        for file in sorted(os.listdir(merge_dir)):
-            mat_list = glob.glob('{}/*.mat'.format(os.path.join(merge_dir + '/' + file)))
+        for file in sorted(os.listdir(merge_dir )):
+            mat_list = glob.glob('{}/*.mat'.format(os.path.join(merge_dir + '/'+ file)))
             for mat in mat_list:
 
                 print(mat)
-                # obtain file name .mat for new file name during the conversion
+                #obtain file name .mat for new file name during the conversion
                 mat_dir_split = mat.split(os.sep)
                 mat_name = mat_dir_split[-1]
-                # print(mat_name)
+                #print(mat_name)
+                date_dir_split = file.split(os.sep)
+                date_name = date_dir_split[-1]
+                #print('{}_{}'.format(date_name, mat_name))
+                
+                #returns dict
+                with suppress(Exception): #ignore exception caused by preprocessedFvid.mat
+                    data = scipy.io.loadmat(mat)
+                    for i in data:
+                        if '__' not in i and 'readme' not in i:
+                            print(data[i].shape)
+                            
+                            save_file = (save_path + date_name + '/')
+                            if not os.path.exists(save_file):
+                                os.makedirs(save_file)
 
-                # returns dict
-                data = scipy.io.loadmat(mat)
-                for i in data:
-                    if '__' not in i and 'readme' not in i:
-                        print(data[i].shape)
-
-                        # save matlab arrays into .npy file
-                        np.save(save_path + "{}_{}.npy".format(mat_name, i), data[i])
-
+                            #save matlab arrays into .npy file
+                            np.save(save_file + "{}_{}_{}.npy".format(date_name, mat_name, i), data[i])
+            
     print()
 
 
-def vid_2_frames(vid_path, output_path, extension='.jpg'):
+def vid_2_frames(vid_path, output_path, extension='.jpg', verbose = False):
     '''
     Converting video to image sequences with specified extension
 
@@ -138,12 +147,12 @@ def vid_2_frames(vid_path, output_path, extension='.jpg'):
     vid_path: Path where video is stored
     output_path: Path where the converted image should be stored
     extension: Desired image extension, by DEFAULT .jpg
-
+    verbose: Print progress of image creating
     Example:
         vid_path = '7-12-17-preprocessed.avi'
         output_path = retrieve_filename(vid_path)
 
-        vid_2_frames(vid_path, output_path, extension = '.jpg')
+        vid_2_frames(vid_path, output_path, extension = '.jpg', verbose = True)
 
     Return:
         >> For:  7-12-17-preprocessed.avi
@@ -179,8 +188,9 @@ def vid_2_frames(vid_path, output_path, extension='.jpg'):
         if ret:
             # if video is still left continue creating images
             # name = ('./'+ output_path +'/frame_' + str(currentframe) + extension)
-            name = ('./{}/frame_{:04d}{}').format(output_path, currentframe, extension)
-            print('Creating...' + name)
+            if verbose:
+                name = ('./{}/frame_{:04d}{}').format(output_path, currentframe, extension)
+                print('Creating...' + name)
 
             # writing the extracted images
             cv2.imwrite(name, frame)
