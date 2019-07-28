@@ -1,0 +1,143 @@
+import tensorflow as tf
+from coord_conv import CoordConv
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.layers import Conv2D, Dense, Flatten, Reshape, MaxPooling2D, UpSampling2D
+from tensorflow.keras.layers import InputLayer, Conv2DTranspose, Activation, BatchNormalization
+from tensorflow.keras.regularizers import l1
+
+def conv_block(x_in, filters, kernel_size, strides, padding,
+               activation, kernel_regularizer=False,
+               batch_norm=False, max_pool=False, l1_coeff=None):
+    '''
+    Build convolutional block with batch normalization
+    '''
+    if kernel_regularizer:
+        print('L1 regularizer is activate!')
+        x = Conv2D(filters, kernel_size, strides, padding, kernel_regularizer=l1(l1_coeff))(x_in)
+    else:
+        x = Conv2D(filters, kernel_size, strides, padding)(x_in)
+
+    if batch_norm:
+        x = BatchNormalization()(x)
+    x = Activation(activation)(x)
+
+    if max_pool:
+        assert strides < 2 or strides < (2, 2), "Downsampling too fast for strides greater than 2"
+
+        x = MaxPooling2D(pool_size=(2, 2), strides=2, padding='same')(x)
+
+    return x
+
+
+def coordconv_block(x_in, x_dim, y_dim, filters, kernel_size,
+                    strides, padding, activation, kernel_regularizer=False,
+                    batch_norm=False, max_pool=False, with_r=False, l1_coeff=None):
+    '''
+    Build coordconv block with batch normalization
+    '''
+    if kernel_regularizer:
+        print('L1 regularizer is activate!')
+        x = CoordConv(x_dim, y_dim, with_r, filters, kernel_size,
+                      strides, padding, kernel_regularizer=l1(l1_coeff))(x_in)
+    else:
+        x = CoordConv(x_dim, y_dim, with_r, filters, kernel_size, strides, padding)(x_in)
+
+    if batch_norm:
+        x = BatchNormalization()(x)
+    x = Activation(activation)(x)
+
+    if max_pool:
+        assert strides < 2 or strides < (2, 2), "Downsampling too fast for strides greater than 2"
+
+        x = MaxPooling2D(pool_size=(2, 2), strides=2, padding='same')(x)
+
+    return x
+
+def up_block(x_in, up_size, filters, kernel_size, strides, padding, activation,
+             batch_norm = False):
+    '''
+    Build upsampling block with upsamping + convolutional operation
+    '''
+    u = UpSampling2D(up_size)(x_in)
+    #by default during upsampling Conv2D does not need maxpooling!
+    conv_u = conv_block(u, filters, kernel_size, strides, padding, activation, batch_norm)
+    return conv_u
+
+def up_coord_block(x_in, up_size, xdim, ydim, filters, kernel_size, strides, padding, activation,
+             batch_norm = False):
+    '''
+    Build upsampling block with upsamping + coordconv operation
+    '''
+    u = UpSampling2D(up_size)(x_in)
+    #by default during upsampling Conv2D does not need maxpooling!
+    coordconv_u = coordconv_block(u, xdim, ydim, filters, kernel_size, strides, padding, activation, batch_norm)
+    return coordconv_u
+
+def data_aug(x_train, y_train, batch_size):
+    '''
+    Generate data augmentation with shifting and rotation
+    '''
+    data_generator = ImageDataGenerator(
+            width_shift_range=0.1,
+            height_shift_range=0.1,
+            rotation_range=10).flow(x_train, x_train, batch_size, seed=42)
+    mask_generator = ImageDataGenerator(
+            width_shift_range=0.1,
+            height_shift_range=0.1,
+            rotation_range=10).flow(y_train, y_train, batch_size, seed=42)
+    while True:
+        x_batch, _ = data_generator.next()
+        y_batch, _ = mask_generator.next()
+        yield x_batch, y_batch
+
+def img_mean(imgs):
+    '''
+    Modified mean images for tensorflow
+    '''
+    sums = tf.zeros((IMG_SIZE, IMG_SIZE))
+    total_index = 0
+    for i in range(imgs.shape[0]):
+        sums+=tf.squeeze(imgs[i])
+        total_index+=1
+    #print(total_index)
+    mean_img = sums/total_index
+    return tf.expand_dims(mean_img, axis = -1)
+
+def min_max_norm(images):
+    """
+    Modified Min max normalization of images in Tensorflow
+    Parameters:
+        images: Input stacked image list
+    Return:
+        Image list after min max normalization
+    """
+    m = tf.math.reduce_max(images)
+    mi = tf.math.reduce_min(images)
+    images = (images - mi)/ (m - mi)
+    return tf.expand_dims(images, axis = 0)
+
+def dice_coef(y_true, y_pred):
+    '''
+    Dice coefficient for tensorflow
+    '''
+    y_true_f = tf.keras.backend.flatten(y_true)
+    y_pred_f = tf.keras.backend.flatten(y_pred)
+    intersection = tf.reduce_sum(y_true_f * y_pred_f)
+    return (2. * intersection + tf.keras.backend.epsilon()) / \
+(tf.reduce_sum(y_true_f) + tf.reduce_sum(y_pred_f) + tf.keras.backend.epsilon())
+
+def dice_coef_loss(y_true, y_pred):
+    '''
+    Dice coefficient loss for IOU
+    '''
+    return 1-dice_coef(y_true, y_pred)
+
+def jaccard_distance_loss(y_true, y_pred, smooth=100):
+    """
+    Jaccard = (|X & Y|)/ (|X|+ |Y| - |X & Y|)
+            = sum(|A*B|)/(sum(|A|)+sum(|B|)-sum(|A*B|))
+    """
+    intersection = tf.reduce_sum(tf.math.abs(y_true * y_pred), axis=-1)
+    sum_ = tf.reduce_sum(tf.math.abs(y_true) + tf.math.abs(y_pred), axis=-1)
+    jac = (intersection + smooth) / (sum_ - intersection + smooth)
+    return tf.reduce_sum((1 - jac) * smooth)

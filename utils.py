@@ -10,41 +10,6 @@ import scipy.io
 from skimage.external import tifffile as sktiff
 import skimage.color
 
-def time_series_generator(stop_time, num_points, frequency, noise = None, std = 0.1):
-    '''
-    Generate a time series based on parameters
-    :param stop_time:
-    :param num_points:
-    :param frequency:
-    :param noise:
-    :param std:
-
-    :return: samples, signals, errors
-    '''
-    # Initializing TimeSampler
-    time_sampler = ts.TimeSampler(stop_time=stop_time)
-    # Sampling irregular time samples
-    irregular_time_samples = time_sampler.sample_irregular_time(num_points= num_points, keep_percentage=10)
-    # Initializing Sinusoidal signal
-    #sinusoid = ts.signals.Sinusoidal(frequency=0.5)
-    PseudoPeriodic = ts.signals.PseudoPeriodic(frequency= frequency)
-    if noise == None:
-        white_noise = None
-    else:
-    # Initializing Gaussian noise
-        white_noise = ts.noise.GaussianNoise(std=std)
-    # Initializing TimeSeries class with the signal and noise objects
-    timeseries = ts.TimeSeries(PseudoPeriodic, noise_generator=white_noise)
-    # Sampling using the irregular time samples
-    samples, signals, errors = timeseries.sample(irregular_time_samples)
-
-    return samples, signals, errors
-
-#Example:
-# _, signals,_ = time_series_generator(stop_time = 20, num_points = 500, frequency = 0.1, noise = True, std = 0.3)
-# plt.plot(signals)
-# plt.show()
-
 def min_max_norm(images):
     """
     Min max normalization of images
@@ -302,3 +267,84 @@ def imgs_to_arrays(inp_imgs, extension='.jpg', RGB=True, save_as_npy=False, img_
 
     return imgs_list
 
+
+def masked_img(mean_imgs, mean_roi):
+    '''
+    Plot masked image of an input mean image
+    '''
+
+    # operations require dtype = uint8 for bitwise comparison
+    scr1 = (mean_imgs * 255).astype(np.uint8)  # scr image needs to be int(0,250)
+    scr2 = mean_roi  # mask image needs to be float (0,1)
+    masked_output = scr1 * scr2
+
+    return masked_output.astype(np.uint8)
+
+def dice_coef_py(y_true, y_pred):
+    '''
+    Dice coefficient for numpy
+    '''
+    eps = 1e-07
+    y_true_f = y_true.flatten()
+    y_pred_f = y_pred.flatten()
+    intersection = np.sum(y_true_f * y_pred_f)
+    return (2. * intersection + eps) /(np.sum(y_true_f) + np.sum(y_pred_f) + eps)
+
+
+def retrieve_centroid(inp_img, centroid_rad=3):
+    '''
+    Estimate centroid from contour and plot centroids on mask image
+
+    Parameters:
+        inp_img: binarized input image
+        centroid_rad: specify centroid radius during plot by DEFAULT 3
+    Return:
+        centres list and img with centroids
+    '''
+    assert inp_img.max() == 1.0, "Image not binarized!"
+
+    # image needs to be binarized and of type int!
+    cast_img = (inp_img).astype(np.uint8)
+    print('Shape:{}, Min:{}, Max:{}, Type:{}'.format(cast_img.shape, cast_img.min(),
+                                                     cast_img.max(), cast_img.dtype))
+    contours, a = cv2.findContours(cast_img.copy(), cv2.RETR_CCOMP, cv2.CHAIN_APPROX_TC89_L1)
+    print('Number of detected ROIs:', len(contours))
+    centres = []
+    for i in range(len(contours)):
+        moments = cv2.moments(contours[i])
+        centres.append((int(moments['m10'] / moments['m00']), int(moments['m01'] / moments['m00'])))
+        # cv2.circle(img, (x,y), radius, (b, g, r), -1)
+        img_with_centroids = cv2.circle(cast_img, centres[-1], centroid_rad, (0, 0, 0), -1)
+
+    return centres, img_with_centroids
+
+def mean_image(imgs, img_size):
+    '''
+    :param imgs: Image list
+    :param img_size: specify image size
+    :return:
+        Mean image of shape (img_size, img_size)
+    '''
+    sums = np.zeros((img_size, img_size))
+    total_index = 0
+    for i in range(len(imgs)):
+        sums += np.squeeze(imgs[i])
+        total_index += 1
+
+    mean_img_ori = sums / total_index
+
+    return mean_img_ori
+
+
+def MSE_image(img1, img2, IMG_SIZE):
+    '''
+    :param img1: True image
+    :param img2: Predicted image
+    :return:
+        Measn squared error of two images
+    '''
+    img1, img2 = np.squeeze(img1), np.squeeze(img2)
+    sq_error = (img1 - img2) ** 2
+    sums = np.sum(sq_error)
+
+    return sums / (IMG_SIZE * IMG_SIZE)

@@ -1,0 +1,124 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from tensorflow.keras import Model, Sequential
+import cv2
+
+
+def plot_loss(loss_list, recon_list=None):
+    '''
+    :param loss_list: List containing total loss values
+    :param recon_list: List containing reconstruction loss
+    :return: loss value plot
+    '''
+    plt.xlabel('Number of every Steps')
+    plt.ylabel('Loss')
+    plt.title('Loss Curve')
+    plt.grid(linestyle='dotted')
+    plt.plot(loss_list)
+
+
+def plot_comparison(input_img, caption, IMG_SIZE, n_row=1, n_col=2, figsize=(5, 5)):
+    '''
+    Plot comparison of multiple image but only in column wise!
+    :param input_img: Input image list
+    :param caption: Input caption list
+    :param IMG_SIZE: Image size
+    :param n_row: Number of row is 1 by DEFAULT
+    :param n_col: Number of columns
+    :param figsize: Figure size during plotting
+    :return: Plot of (n_row, n_col)
+    '''
+    print()
+    assert len(caption) == len(input_img), "Caption length and input image length does not match"
+    assert len(input_img) == n_col, "Error of input images or number of columns!"
+
+    fig, axes = plt.subplots(n_row, n_col, figsize=figsize)
+    fig.subplots_adjust(hspace=0.4, wspace=0.4, right=0.7)
+
+    for i in range(n_col):
+        axes[i].imshow(np.squeeze(input_img[i]), cmap='gray')
+        axes[i].set_xlabel(caption[i])
+        axes[i].set_xticks([])
+        axes[i].set_yticks([])
+
+    plt.tight_layout()
+    plt.show()
+
+
+def layers_dict(model):
+    '''
+    :param model: deep learning model
+
+    :return:
+        Dictionary with 'key': layer names, value: layer information
+    '''
+    layer_dict = dict([(layer.name, layer) for layer in model.layers])
+    return layer_dict
+
+def layers_name(model):
+    '''
+    Retrieve key/name of layers
+    :param model: Network model
+    :return:
+        Layers name list
+    '''
+    layer_dict = layers_dict(model)
+    key_list = []
+    for key, value in layer_dict.items():
+        key_list.append(key)
+        print(key)
+    return key_list
+
+
+def feature_maps(model, layer_name, inps):
+    '''
+    This function visualize the intermediate activations of the filters within the layers
+    :param model: deep learning model
+    :param layer_name: desired layer name, if forgotten, please refer to layers_dict function
+    :param inps: feed the network with input, such as images, etc. input dimension
+                 should be 4.
+
+    :return:
+        feature maps of the layer specified by layer name,
+        with dimension ( batch, row size, column size, channels)
+    '''
+    assert inps.ndim == 4, "Input tensor dimension not equal to 4!"
+    # retrieve key value from layers_dict
+    layer_dict = layers_dict(model)
+
+    # layer output with respect to the layer name
+    layer_output = layer_dict[layer_name].output
+    viz_model = Model(inputs=model.inputs, outputs=layer_output)
+    feature_maps = viz_model.predict(inps)
+
+    print('Shape of feature maps:', feature_maps.shape)
+    # shape (batch, row size, column size, channels)
+    return feature_maps
+
+
+def plot_feature_maps(inps, row_num, col_num, figsize):
+    '''
+    This function can only plot the feature maps of a model
+    :param inps: feature maps
+    :param row_num: number of rows for the plot
+    :param col_num: number of columns for the plot
+
+    :return:
+        grid plot of size (row_num * col_num)
+    '''
+    assert inps.ndim == 4, "Input tensor dimension not equal to 4!"
+
+    print("Number of feature maps in layer: ", inps.shape[-1])
+
+    fig, axes = plt.subplots(row_num, col_num, figsize=figsize)
+    fig.subplots_adjust(hspace=0.4, wspace=0.4, right=0.7)
+
+    for i, ax in enumerate(axes.flat):
+        img = inps[0, :, :, i]
+
+        ax.imshow(img, cmap='gray')
+        ax.set_xticks([])
+        ax.set_yticks([])
+
+    plt.tight_layout()
+    plt.show()
