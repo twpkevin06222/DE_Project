@@ -17,7 +17,7 @@ def plot_loss(loss_list, recon_list=None):
     plt.plot(loss_list)
 
 
-def plot_comparison(input_img, caption, IMG_SIZE, n_row=1, n_col=2, figsize=(5, 5)):
+def plot_comparison(input_img, caption, n_row=1, n_col=2, figsize=(5, 5)):
     '''
     Plot comparison of multiple image but only in column wise!
     :param input_img: Input image list

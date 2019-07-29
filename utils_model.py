@@ -90,11 +90,11 @@ def data_aug(x_train, y_train, batch_size):
         y_batch, _ = mask_generator.next()
         yield x_batch, y_batch
 
-def img_mean(imgs):
+def img_mean(imgs, img_size):
     '''
     Modified mean images for tensorflow
     '''
-    sums = tf.zeros((IMG_SIZE, IMG_SIZE))
+    sums = tf.zeros((img_size, img_size))
     total_index = 0
     for i in range(imgs.shape[0]):
         sums+=tf.squeeze(imgs[i])
