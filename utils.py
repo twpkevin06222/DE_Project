@@ -396,6 +396,7 @@ def MSE_image(img1, img2, IMG_SIZE):
 def max_in_pro(img_stacks, n_imgs, n_rows, n_cols, IMG_SIZE):
     '''
     Calculate the maximum intensity projection of image stacks
+    (not optimized for tensorflow!)
     '''
     pixel_flat = []
     mip = []
