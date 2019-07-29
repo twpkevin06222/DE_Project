@@ -384,10 +384,40 @@ def MSE_image(img1, img2, IMG_SIZE):
     :param img1: True image
     :param img2: Predicted image
     :return:
-        Measn squared error of two images
+        Mean squared error of two images
     '''
     img1, img2 = np.squeeze(img1), np.squeeze(img2)
     sq_error = (img1 - img2) ** 2
     sums = np.sum(sq_error)
 
     return sums / (IMG_SIZE * IMG_SIZE)
+
+
+def max_in_pro(img_stacks, n_imgs, n_rows, n_cols, IMG_SIZE):
+    '''
+    Calculate the maximum intensity projection of image stacks
+    '''
+    pixel_flat = []
+    mip = []
+    # (i, j ,k) # of images, # of rows, # of cols
+    for j in range(n_rows):
+        for k in range(n_cols):
+            for i in range(n_imgs):
+                # print(i, j, k)
+                if img_stacks.ndim == 4:
+                    pixel_flat.append(img_stacks[i, j, k, :])
+                else:
+                    pixel_flat.append(img_stacks[i, j, k])
+
+    # acts as max. window of size n_imgs and strides of n_imgs
+    for n in range(n_cols * n_rows):
+        start = n * n_imgs
+        end = (n_imgs - 1) + (start)
+        # print(start, end)
+        max_pixel = np.max(pixel_flat[start:end])
+        mip.append(max_pixel)
+
+    mip = np.asarray(mip)
+    mip_re = np.reshape(mip, (IMG_SIZE, IMG_SIZE))
+
+    return np.expand_dims(mip_re, -1)
