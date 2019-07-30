@@ -393,6 +393,19 @@ def MSE_image(img1, img2, IMG_SIZE):
     return sums / (IMG_SIZE * IMG_SIZE)
 
 
+def MAE_image(img1, img2, IMG_SIZE):
+    '''
+    :param img1: True image
+    :param img2: Predicted image
+    :return:
+        Mean absoluate error of two images
+    '''
+    img1, img2 = np.squeeze(img1), np.squeeze(img2)
+    ab_error = np.abs(img1 - img2)
+    sums = np.sum(ab_error)
+
+    return sums / (IMG_SIZE * IMG_SIZE)
+
 def max_in_pro(img_stacks, n_imgs, n_rows, n_cols, IMG_SIZE):
     '''
     Calculate the maximum intensity projection of image stacks
