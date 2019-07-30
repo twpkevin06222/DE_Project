@@ -141,3 +141,20 @@ def jaccard_distance_loss(y_true, y_pred, smooth=100):
     sum_ = tf.reduce_sum(tf.math.abs(y_true) + tf.math.abs(y_pred), axis=-1)
     jac = (intersection + smooth) / (sum_ - intersection + smooth)
     return tf.reduce_sum((1 - jac) * smooth)
+
+
+def max_intensity_projection(input_layer, BATCH_SIZE):
+    '''
+    MIP for tensorflow implementation with MaxPooling3D
+    :param input_layer: Input layer with tensorflow.keras.layers.Input
+    :param BATCH_SIZE: batch size
+    :return:
+        Maximum intensity projection of the batch with dim 5
+    '''
+    x = tf.expand_dims(input_layer, -1)
+    x = tf.transpose(x, [3, 1, 2, 0, 4])  # swap (batch, dim1, dim2, dim3, channel) => (d3, d1, d2, batch, channel)
+    x = MaxPooling3D(pool_size=(1, 1, BATCH_SIZE), strides=1)(x)
+
+    return x
+# input_layer = Input(shape=(IMG_SIZE, IMG_SIZE, 1))
+# mip = Model(input_layer, max_intensity_projection(input_layer, BATCH_SIZE))
