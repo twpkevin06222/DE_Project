@@ -57,7 +57,7 @@ def plot_hist(inp_img, titles, n_row=1, n_col=2,
     :param ranges: Range of pixel values by DEFAULT [0,1]
     :param figsize: Figure size while plotting by DEFAULT (5,5)
     :return:
-        Plot of histograms 
+        Plot of histograms
     '''
     assert len(titles) == len(inp_img), "Caption length and input image length does not match"
     assert len(inp_img) == n_col, "Error of input images or number of columns!"
