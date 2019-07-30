@@ -45,6 +45,37 @@ def plot_comparison(input_img, caption, n_row=1, n_col=2, figsize=(5, 5)):
     plt.show()
 
 
+def plot_hist(inp_img, titles, n_row=1, n_col=2,
+              n_bin=20, ranges=[0, 1], figsize=(5, 5)):
+    '''
+    Plot histogram side by side
+    :param inp_img: Input image stacks as list
+    :param titles: Input titles as list
+    :param n_row: Number of row by DEFAULT 1
+    :param n_col: Number of columns by DEFAULT 2
+    :param n_bin: Number of bins by DEFAULT 20
+    :param ranges: Range of pixel values by DEFAULT [0,1]
+    :param figsize: Figure size while plotting by DEFAULT (5,5)
+    :return:
+        Plot of histograms 
+    '''
+    assert len(titles) == len(inp_img), "Caption length and input image length does not match"
+    assert len(inp_img) == n_col, "Error of input images or number of columns!"
+
+    fig, axes = plt.subplots(n_row, n_col, figsize=figsize)
+    fig.subplots_adjust(hspace=0.4, wspace=0.4, right=0.7)
+
+    for i in range(n_col):
+        inp = np.squeeze(inp_img[i])
+        axes[i].hist(inp.ravel(), n_bin, ranges)
+        axes[i].set_title(titles[i])
+        axes[i].set_xlabel('Pixel Value')
+        axes[i].set_ylabel('Frequency')
+
+    plt.tight_layout()
+    plt.show()
+
+
 def layers_dict(model):
     '''
     :param model: deep learning model
@@ -122,3 +153,4 @@ def plot_feature_maps(inps, row_num, col_num, figsize):
 
     plt.tight_layout()
     plt.show()
+
