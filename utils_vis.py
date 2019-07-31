@@ -17,7 +17,7 @@ def plot_loss(loss_list, recon_list=None):
     plt.plot(loss_list)
 
 
-def plot_comparison(input_img, caption, n_row=1, n_col=2, figsize=(5, 5)):
+def plot_comparison(input_img, caption, n_row=1, n_col=2, figsize=(5, 5), cmap = 'gray'):
     '''
     Plot comparison of multiple image but only in column wise!
     :param input_img: Input image list
@@ -36,7 +36,7 @@ def plot_comparison(input_img, caption, n_row=1, n_col=2, figsize=(5, 5)):
     fig.subplots_adjust(hspace=0.4, wspace=0.4, right=0.7)
 
     for i in range(n_col):
-        axes[i].imshow(np.squeeze(input_img[i]), cmap='gray')
+        axes[i].imshow(np.squeeze(input_img[i]), cmap= cmap)
         axes[i].set_xlabel(caption[i])
         axes[i].set_xticks([])
         axes[i].set_yticks([])

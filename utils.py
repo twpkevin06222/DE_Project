@@ -406,13 +406,15 @@ def MAE_image(img1, img2, IMG_SIZE):
 
     return sums / (IMG_SIZE * IMG_SIZE)
 
-def max_in_pro(img_stacks, n_imgs, n_rows, n_cols, IMG_SIZE):
+
+def max_in_pro(img_stacks, n_imgs, n_rows, n_cols, norm=False):
     '''
     Calculate the maximum intensity projection of image stacks
     (not optimized for tensorflow!)
     '''
     pixel_flat = []
     mip = []
+    std_dev = []
     # (i, j ,k) # of images, # of rows, # of cols
     for j in range(n_rows):
         for k in range(n_cols):
@@ -426,12 +428,24 @@ def max_in_pro(img_stacks, n_imgs, n_rows, n_cols, IMG_SIZE):
     # acts as max. window of size n_imgs and strides of n_imgs
     for n in range(n_cols * n_rows):
         start = n * n_imgs
-        end = (n_imgs - 1) + (start)
+        end = (start) + (n_imgs)
         # print(start, end)
         max_pixel = np.max(pixel_flat[start:end])
         mip.append(max_pixel)
 
+        if norm:
+            # print('Normalizing!')
+            std_pixel = np.std(pixel_flat[start:end])
+            std_dev.append(std_pixel)
+
     mip = np.asarray(mip)
-    mip_re = np.reshape(mip, (IMG_SIZE, IMG_SIZE))
+
+    if norm:
+        # print('Normalizing!')
+        std_dev = np.asarray(std_dev)
+        # mip /= std_dev
+        mip = np.multiply(mip, std_dev)  # weight by std.dev
+
+    mip_re = np.reshape(mip, (n_rows, n_cols))
 
     return np.expand_dims(mip_re, -1)
