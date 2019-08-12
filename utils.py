@@ -26,25 +26,22 @@ def min_max_norm(images):
     return images
 
 
-def resize(img_list, NEW_SIZE):
+def resize(img_list, NEW_SIZE, interpolation=cv2.INTER_LINEAR):
     """
     Resize image
     Parameter:
-        image volume height list, new size for image
+        image list, new size for image
     Return:
         resize image list
     """
     new_img_list = []
 
     for img in img_list:
-        new_img = []
+        new_img = cv2.resize(img, (NEW_SIZE, NEW_SIZE), interpolation=interpolation)
 
-        for i in range(np.size(img, 2)):
-            new_img.append(np.asarray(Image.fromarray(img[:,:,i],mode='F').resize((NEW_SIZE,NEW_SIZE), Image.LANCZOS)))
+        new_img_list.append(new_img)
 
-        new_img_list.append(np.swapaxes(new_img, 0, 2))
-
-    return new_img_list
+    return np.asarray(new_img_list)
 
 def tiff(dir_path):
     '''
