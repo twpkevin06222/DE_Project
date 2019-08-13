@@ -446,3 +446,41 @@ def max_in_pro(img_stacks, n_imgs, n_rows, n_cols, norm=False):
     mip_re = np.reshape(mip, (n_rows, n_cols))
 
     return np.expand_dims(mip_re, -1)
+
+
+def batch_dataset(inp_imgs, BATCH_SIZE, IMG_SIZE):
+    '''
+    Custom function for creating mini-batch of dataset
+    :param inp_imgs: Input image list
+    :param BATCH_SIZE: batch size
+    :param IMG_SIZE: input image size
+    :return:
+        Batched dataset of dimension (n_batch, BATCH_SIZE, IMG_SIZE, IMG_SIZE, channel)
+    '''
+    n_batch = int(len(inp_imgs) / BATCH_SIZE)
+    mod = len(inp_imgs) % BATCH_SIZE
+    if mod == 0:
+        batch_imgs = np.reshape(inp_imgs, (n_batch, BATCH_SIZE, IMG_SIZE, IMG_SIZE, 1))
+    else:
+        # divisible part
+        divisible = inp_imgs[:(len(inp_imgs) - mod)]
+        divisible_re = np.reshape(divisible, (n_batch, BATCH_SIZE, IMG_SIZE, IMG_SIZE, 1))
+
+        # remainder part
+        remainder = inp_imgs[(len(inp_imgs) - mod):]
+        # remainder shape must be padded to be the same as divisible shape
+        # else python will return array of type "object" which tensorflow
+        # cannot convert it to tensor
+        pad_dim = int(BATCH_SIZE - mod)
+        pad_array = np.zeros((pad_dim, IMG_SIZE, IMG_SIZE, 1))
+        remainder_pad = np.concatenate((remainder, pad_array), axis=0)
+        # normalize trick for remainder to balance the mean of zeros array padding
+        # such that in tf.reduce_mean, mean of remainder_pad = remainder_pad/BATCH_SIZE
+        # which in this case, the true mean becomes remainder_pad/len(remainder)
+        remainder_pad *= (BATCH_SIZE / len(remainder))
+        remainder_pad = np.expand_dims(remainder_pad, 0)
+
+        # stack divisible and remainder
+        batch_imgs = np.concatenate((divisible_re, remainder_pad), 0).astype('float32')
+
+    return batch_imgs
