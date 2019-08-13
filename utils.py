@@ -460,7 +460,7 @@ def batch_dataset(inp_imgs, BATCH_SIZE, IMG_SIZE):
     n_batch = int(len(inp_imgs) / BATCH_SIZE)
     mod = len(inp_imgs) % BATCH_SIZE
     if mod == 0:
-        batch_imgs = np.reshape(inp_imgs, (n_batch, BATCH_SIZE, IMG_SIZE, IMG_SIZE, 1))
+        batch_imgs = np.reshape(inp_imgs, (n_batch, BATCH_SIZE, IMG_SIZE, IMG_SIZE, 1)).astype('float32')
     else:
         # divisible part
         divisible = inp_imgs[:(len(inp_imgs) - mod)]

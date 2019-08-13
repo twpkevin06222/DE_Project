@@ -7,13 +7,20 @@ from tensorflow.keras.regularizers import l1
 
 def conv_block(x_in, filters, kernel_size, strides, padding,
                activation, kernel_regularizer=False,
+               activity_regularizer = False,
                batch_norm=False, max_pool=False, l1_coeff=None):
     '''
     Build convolutional block with batch normalization
     '''
     if kernel_regularizer:
-        print('L1 regularizer is activate!')
+        print('L1 kernel regularizer is activate!')
         x = Conv2D(filters, kernel_size, strides, padding, kernel_regularizer=l1(l1_coeff))(x_in)
+    else:
+        x = Conv2D(filters, kernel_size, strides, padding)(x_in)
+
+    if activity_regularizer:
+        print('L1 activity regularizer is activate!')
+        x = x = Conv2D(filters, kernel_size, strides, padding, activity_regularizer=l1(l1_coeff))(x_in)
     else:
         x = Conv2D(filters, kernel_size, strides, padding)(x_in)
 
@@ -31,14 +38,23 @@ def conv_block(x_in, filters, kernel_size, strides, padding,
 
 def coordconv_block(x_in, x_dim, y_dim, filters, kernel_size,
                     strides, padding, activation, kernel_regularizer=False,
-                    batch_norm=False, max_pool=False, with_r=False, l1_coeff=None):
+                    activity_regularizer=False,
+                    batch_norm=False, max_pool=False,
+                    with_r=False, l1_coeff=None):
     '''
     Build coordconv block with batch normalization
     '''
     if kernel_regularizer:
-        print('L1 regularizer is activate!')
+        print('L1 kernel regularizer is activate!')
         x = CoordConv(x_dim, y_dim, with_r, filters, kernel_size,
                       strides, padding, kernel_regularizer=l1(l1_coeff))(x_in)
+    else:
+        x = CoordConv(x_dim, y_dim, with_r, filters, kernel_size, strides, padding)(x_in)
+
+    if activity_regularizer:
+        print('L1 kernel regularizer is activate!')
+        x = CoordConv(x_dim, y_dim, with_r, filters, kernel_size,
+                      strides, padding, activity_regularizer=l1(l1_coeff))(x_in)
     else:
         x = CoordConv(x_dim, y_dim, with_r, filters, kernel_size, strides, padding)(x_in)
 
