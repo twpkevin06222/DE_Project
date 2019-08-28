@@ -251,7 +251,7 @@ def vid2frames_from_files(input_path, save_path):
                 # print('{}_{}'.format(date_name, avi_name))
 
                 vid_name = retrieve_filename(avi)
-                save_dir = (save_path + '{}_{}'.format(date_name, vid_name))
+                save_dir = (save_path + '{}_{}_{}'.format(main_dir,date_name, vid_name))
                 vid_2_frames(avi, save_dir, extension='.jpg')
 
     print()
@@ -299,11 +299,11 @@ def imgs_to_arrays(inp_imgs, extension='.jpg', RGB=True, save_as_npy=False, img_
     if save_as_npy:
         assert save_path != None, "Save path not specified!"
         # by default
-        # if not os.path.exists(save_path):
-        #     os.makedirs(save_path)
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
 
         save_name = retrieve_filename(inp_imgs)
-        np.save(save_path + '/{}.npy'.format(save_name), imgs_list)
+        np.save(save_path + '{}.npy'.format(save_name), imgs_list)
 
     return imgs_list
 
