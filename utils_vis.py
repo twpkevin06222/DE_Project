@@ -4,15 +4,19 @@ from tensorflow.keras import Model, Sequential
 import cv2
 
 
-def plot_loss(loss_list, recon_list=None):
+def plot_loss(loss_list, xlabel, ylabel, title, recon_list=None):
     '''
     :param loss_list: List containing total loss values
     :param recon_list: List containing reconstruction loss
+    :param xlabel: string for xlabel
+    :param ylabel: string for ylabel
+    :param title: string for title
+
     :return: loss value plot
     '''
-    plt.xlabel('Number of every Steps')
-    plt.ylabel('Loss')
-    plt.title('Loss Curve')
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.title(title)
     plt.grid(linestyle='dotted')
     plt.plot(loss_list)
 
