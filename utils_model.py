@@ -174,3 +174,22 @@ def max_intensity_projection(input_layer, BATCH_SIZE):
     return x
 # input_layer = Input(shape=(IMG_SIZE, IMG_SIZE, 1))
 # mip = Model(input_layer, max_intensity_projection(input_layer, BATCH_SIZE))
+
+def dicesq(y_true, y_pred):
+    '''
+    Modified dice coefficient as refer to: https://arxiv.org/abs/1606.04797
+    :param y_true: Ground truth
+    :param y_pred: Prediction from the model
+    :return: Modified dice coefficient
+    '''
+    nmr = 2*tf.reduce_sum(y_true*y_pred)
+    dnmr = tf.reduce_sum(y_true**2) + tf.reduce_sum(y_pred**2) + tf.keras.backend.epsilon()
+    return (nmr / dnmr)
+
+def dicesq_loss(y_true, y_pred):
+    '''
+    Modified dice coefficient loss
+    :param y_true: Ground truth
+    :param y_pred: Prediction from the model
+    '''
+    return 1- dicesq(y_true, y_pred)
