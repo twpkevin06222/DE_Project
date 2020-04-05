@@ -20,7 +20,7 @@ def conv_block(x_in, filters, kernel_size, strides, padding,
 
     if activity_regularizer:
         print('L1 activity regularizer is activate!')
-        x = x = Conv2D(filters, kernel_size, strides, padding, activity_regularizer=l1(l1_coeff))(x_in)
+        x = Conv2D(filters, kernel_size, strides, padding, activity_regularizer=l1(l1_coeff))(x_in)
     else:
         x = Conv2D(filters, kernel_size, strides, padding)(x_in)
 
