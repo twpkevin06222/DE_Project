@@ -158,3 +158,11 @@ def plot_feature_maps(inps, row_num, col_num, figsize):
     plt.tight_layout()
     plt.show()
 
+def overlapMasks(mask_truth, mask_predicted): 
+    
+    colors = [(0, 0, 0), (0, 1, 0), (0, 0, 0.9)] 
+    cm = LinearSegmentedColormap.from_list('mylist', colors, 3)  
+    
+    #Create mask for overlay, take only activated neurons from one hot im
+    Image2_mask = np.ma.masked_array(mask_truth, mask_predicted > 0)
+    plt.imshow(Image2_mask, cmap=cm)
