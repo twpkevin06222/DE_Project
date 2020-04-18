@@ -225,6 +225,6 @@ def getConfusionMatrix(mask_truth, mask_predicted):
     return TP, FP, FN, TN
 
 
-    def f1score(TP, FP, FN): 
+def f1score(TP, FP, FN): 
     f1 = 2*TP / (2*TP + FP + FN)
     return f1
