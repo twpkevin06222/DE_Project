@@ -79,14 +79,14 @@ def up_block(x_in, up_size, filters, kernel_size, strides, padding, activation,
     conv_u = conv_block(u, filters, kernel_size, strides, padding, activation, batch_norm)
     return conv_u
 
-def up_coord_block(x_in, up_size, xdim, ydim, filters, kernel_size, strides, padding, activation,
+def up_coord_block(x_in, up_size, x_dim, y_dim, filters, kernel_size, strides, padding, activation,
              batch_norm = False):
     '''
     Build upsampling block with upsamping + coordconv operation
     '''
     u = UpSampling2D(up_size)(x_in)
     #by default during upsampling Conv2D does not need maxpooling!
-    coordconv_u = coordconv_block(u, xdim, ydim, filters, kernel_size, strides, padding, activation, batch_norm)
+    coordconv_u = coordconv_block(u, x_dim, y_dim, filters, kernel_size, strides, padding, activation, batch_norm)
     return coordconv_u
 
 def data_aug(x_train, y_train, batch_size):
