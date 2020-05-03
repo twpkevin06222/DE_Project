@@ -1,7 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from tensorflow.keras import Model, Sequential
+from matplotlib import colors
 import cv2
+
 
 
 def plot_loss(loss_list, xlabel, ylabel, title, recon_list=None):
@@ -157,4 +159,27 @@ def plot_feature_maps(inps, row_num, col_num, figsize):
 
     plt.tight_layout()
     plt.show()
+
+def overlapMasks(mask_truth, mask_predicted): 
+    '''
+    This function can only plot the feature maps of a model
+    :param mask_predicted: prediction
+    :param mask_truth: ground truth
+
+    :return:
+        Returns overlapping image of prediction and ground truth
+    '''
+    col = [(0.2, 0.2, 0.2),(1,1,1),(1,0,0)] 
+    cm = LinearSegmentedColormap.from_list('mylist', col, 3)  
+    
+    #Bins for cmap
+    bounds=[0,1,5,10]
+    norm = colors.BoundaryNorm(bounds, cm.N)
+
+    mask_predicted = mask_predicted.numpy()
+    mask_predicted[mask_predicted > 0] = 5
+    
+    Image_mask = np.add(mask_truth, mask_predicted)
+
+    plt.imshow(Image_mask, cmap=cm, norm=norm)
 
