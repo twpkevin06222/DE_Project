@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 from coord_conv import CoordConv
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.layers import Conv2D, Dense, Flatten, Reshape, MaxPooling2D, UpSampling2D
@@ -193,3 +194,49 @@ def dicesq_loss(y_true, y_pred):
     :param y_pred: Prediction from the model
     '''
     return 1- dicesq(y_true, y_pred)
+
+def getConfusionMatrix(mask_truth, mask_predicted):
+    '''
+    Computes confiusion matrix
+    :param mask_truth: Ground truth
+    :param mask_predicted: Prediction from the model
+    '''
+    #Create masks
+
+    mask_truth = mask_truth > 0
+    mask_truth = np.multiply(mask_truth ,1)
+    mask_predicted = mask_predicted > 0 
+    mask_predicted = np.multiply(mask_predicted ,1)
+
+    #True Positives: Predicted correctly as Neuron 
+    overlap = np.multiply(mask_truth ,mask_predicted)
+    unique, counts = np.unique(overlap, return_counts=True)
+    TP = counts[1] / overlap.size
+
+    # False Positives: Predicted as neuron, but is no neuron
+    FPmask = np.subtract(mask_truth, mask_predicted)
+    FP = np.count_nonzero(FPmask == -1)
+    FP = FP / FPmask.size
+
+    # False Negatives: Is Neuron but was not predicted
+    FNmask = np.subtract(mask_predicted, mask_truth)
+    FN = np.count_nonzero(FNmask == -1)
+    FN = FN / FNmask.size
+    
+    #True Nagatives: Is correctly recognized as no neuron
+    TN = 1 - TP - FP - FN
+
+    return TP, FP, FN, TN
+
+
+def f1score(confMatrix): 
+    '''
+    Computes F1-score
+    :param confMatrix: confusion matrix
+    '''
+    TP = confMatrix[0]
+    FP = confMatrix[2]
+    FN = confMatrix[3]
+
+    f1 = 2*TP / (2*TP + FP + FN)
+    return f1
