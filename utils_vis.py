@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tensorflow.keras import Model, Sequential
 from matplotlib import colors
+from matplotlib.colors import LinearSegmentedColormap
 import cv2
 
 
