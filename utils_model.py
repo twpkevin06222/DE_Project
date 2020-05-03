@@ -235,8 +235,8 @@ def f1score(confMatrix):
     :param confMatrix: confusion matrix
     '''
     TP = confMatrix[0]
-    FP = confMatrix[2]
-    FN = confMatrix[3]
+    FP = confMatrix[1]
+    FN = confMatrix[2]
 
     f1 = 2*TP / (2*TP + FP + FN)
     return f1
