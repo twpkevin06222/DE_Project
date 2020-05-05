@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from tensorflow.keras import Model, Sequential
 from matplotlib import colors
 from matplotlib.colors import LinearSegmentedColormap
+import tensorflow as tf
 import cv2
 
 
@@ -24,7 +25,7 @@ def plot_loss(loss_list, xlabel, ylabel, title, recon_list=None):
     plt.plot(loss_list)
 
 
-def plot_comparison(input_img, caption, n_row=1, n_col=2, figsize=(5, 5), cmap = 'gray'):
+def plot_comparison(input_img, caption, n_row=1, n_col=2, figsize=(5, 5), cmap = 'gray', norm = None):
     '''
     Plot comparison of multiple image but only in column wise!
     :param input_img: Input image list
@@ -43,7 +44,7 @@ def plot_comparison(input_img, caption, n_row=1, n_col=2, figsize=(5, 5), cmap =
     fig.subplots_adjust(hspace=0.4, wspace=0.4, right=0.7)
 
     for i in range(n_col):
-        axes[i].imshow(np.squeeze(input_img[i]), cmap= cmap)
+        axes[i].imshow(np.squeeze(input_img[i]), cmap= cmap, norm=norm)
         axes[i].set_xlabel(caption[i])
         axes[i].set_xticks([])
         axes[i].set_yticks([])
@@ -161,7 +162,7 @@ def plot_feature_maps(inps, row_num, col_num, figsize):
     plt.tight_layout()
     plt.show()
 
-def overlapMasks(mask_truth, mask_predicted): 
+def overlapMasks(mask_truth, mask_predicted):
     '''
     This function can only plot the feature maps of a model
     :param mask_predicted: prediction
@@ -170,17 +171,45 @@ def overlapMasks(mask_truth, mask_predicted):
     :return:
         Returns overlapping image of prediction and ground truth
     '''
-    col = [(0.2, 0.2, 0.2),(1,1,1),(1,0,0)] 
-    cm = LinearSegmentedColormap.from_list('mylist', col, 3)  
-    
+    col = [(0.2, 0.2, 0.2),(1,1,1),(1,0,0)]
+    cm = LinearSegmentedColormap.from_list('mylist', col, 3)
+
     #Bins for cmap
     bounds=[0,1,5,10]
     norm = colors.BoundaryNorm(bounds, cm.N)
 
-    mask_predicted = mask_predicted.numpy()
+    # mask_predicted = mask_predicted.numpy()
     mask_predicted[mask_predicted > 0] = 5
-    
+
     Image_mask = np.add(mask_truth, mask_predicted)
 
     plt.imshow(Image_mask, cmap=cm, norm=norm)
+
+
+def overlapMasks02(mask_truth, mask_predicted):
+    '''
+    This function can only plot the feature maps of a model
+    :param mask_predicted: prediction
+    :param mask_truth: ground truth
+
+    :return:
+        Returns overlapping image of prediction and ground truth
+
+    :extra param:
+    (copy this and use this as variable!)
+    from matplotlib.colors import BoundaryNorm
+
+    col = [(0.2, 0.2, 0.2),(1,1,1),(1,0,0)]
+    cm = LinearSegmentedColormap.from_list('mylist', col, 3)
+    #     #Bins for cmap
+    bounds=[0,1,5,10]
+    norm = BoundaryNorm(bounds, cm.N)
+    '''
+
+    mask_predicted = tf.convert_to_tensor(mask_predicted, tf.float32).numpy()
+    mask_predicted[mask_predicted > 0] = 5
+
+    Image_mask = np.add(mask_truth, mask_predicted)
+
+    return Image_mask
 

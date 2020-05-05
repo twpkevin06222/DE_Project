@@ -240,3 +240,75 @@ def f1score(confMatrix):
 
     f1 = 2*TP / (2*TP + FP + FN)
     return f1
+
+
+def create_ran_numbers(img_size):
+    '''
+    Function to create random coordinates
+
+    @param img_size: Image size
+
+    return:
+    random generated x,y coordinates
+    '''
+    c1 = np.random.randint(img_size, size=1)
+    c2 = np.random.randint(img_size, size=1)
+    c1 = tf.convert_to_tensor(c1, dtype=None, dtype_hint=None, name=None)
+    c2 = tf.convert_to_tensor(c2, dtype=None, dtype_hint=None, name=None)
+    return c1, c2
+
+
+@tf.function
+def create_tf_tilecords(coord_list, img_size):
+    o1, o2 = coord_list
+    multiply = tf.constant([img_size * img_size])
+    y1 = tf.reshape(tf.tile(o1, multiply), [img_size, img_size, 1])
+    y2 = tf.reshape(tf.tile(o2, multiply), [img_size, img_size, 1])
+
+    y = tf.concat((y1, y2), axis=2)
+
+    return tf.dtypes.cast(y, tf.float32), tf.dtypes.cast(coord_list, tf.float32)
+
+
+@tf.function
+def tf_create_onehotcords(dat):
+    o1, o2 = dat
+    y1 = tf.one_hot(o1, 100)
+    y2 = tf.one_hot(o2, 100)
+    y2 = tf.transpose(y2)
+    y = tf.math.multiply(y1, y2)
+    # y=tf.transpose(y)
+    return y
+
+
+def create_dat_samples(n, img_size):
+    '''
+    Function to create stacks of coordinates, tiled coordinates, one hot images
+    @param n: number of neurons
+    '''
+    ta = tf.TensorArray(tf.float32, size=0, dynamic_size=True)
+    tb = tf.TensorArray(tf.float32, size=0, dynamic_size=True)
+    coords = tf.TensorArray(tf.float32, size=0, dynamic_size=True)
+    for _ in tf.range(n):
+        dat = create_ran_numbers(img_size=img_size)
+        b1, b2 = create_tf_tilecords(dat, 100)
+        c1 = tf_create_onehotcords(dat)
+        c1 = tf.expand_dims(c1, axis=2, name=None)
+
+        # tile coordinates
+        ta = ta.write(_, b1 / (img_size-1))  # (n, img_size, img_size, 1)
+        # one hot images
+        tb = tb.write(_, c1)  # (n, img_size, img_size, 1)
+        # coordinates
+        coords = coords.write(_, dat)  # (n, 2, 1)
+    return coords.stack(), ta.stack(), tb.stack()
+
+
+def neuron_like_image(n_neurons):
+    '''
+    Function to paint neuron-like images
+     @param n_neurons: number of neurons
+    '''
+    _, _, one_hot_imgs = create_dat_samples(n_neurons)
+    stack_imgs = tf.reduce_sum(one_hot_imgs, axis=0)
+    return tf.expand_dims(stack_imgs, axis=0)  # (1, img_size, img_size, 1)
