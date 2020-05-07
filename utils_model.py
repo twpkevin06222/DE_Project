@@ -312,3 +312,18 @@ def neuron_like_image(n_neurons):
     _, _, one_hot_imgs = create_dat_samples(n_neurons)
     stack_imgs = tf.reduce_sum(one_hot_imgs, axis=0)
     return tf.expand_dims(stack_imgs, axis=0)  # (1, img_size, img_size, 1)
+
+
+def duplicate_batch(inp_img, batch_size):
+    '''
+    This function duplicate an image with respect to its batch size
+    @param inp_img: input image to be duplicated
+    @param batch_size: batch size, which is the number of image to be duplicated
+
+    return duplicated images along axis 0, (batch_size, img_size, img_size, 1)
+    '''
+    if tf.rank(inp_img) != 4:
+        inp_img = tf.expand_dims(inp_img, 0)
+    m2 = tf.constant([batch_size, 1, 1, 1], tf.int32)  # multiplier for tiling
+    duplicate_imgs = tf.tile(inp_img, m2)
+    return duplicate_imgs
