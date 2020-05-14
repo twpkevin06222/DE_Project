@@ -53,7 +53,7 @@ def coordconv_block(x_in, x_dim, y_dim, filters, kernel_size,
         x = CoordConv(x_dim, y_dim, with_r, filters, kernel_size, strides, padding)(x_in)
 
     if activity_regularizer:
-        print('L1 kernel regularizer is activate!')
+        print('L1 activity regularizer is activate!')
         x = CoordConv(x_dim, y_dim, with_r, filters, kernel_size,
                       strides, padding, activity_regularizer=l1(l1_coeff))(x_in)
     else:
@@ -304,12 +304,12 @@ def create_dat_samples(n, img_size):
     return coords.stack(), ta.stack(), tb.stack()
 
 
-def neuron_like_image(n_neurons):
+def neuron_like_image(n_neurons, img_size):
     '''
     Function to paint neuron-like images
      @param n_neurons: number of neurons
     '''
-    _, _, one_hot_imgs = create_dat_samples(n_neurons)
+    _, _, one_hot_imgs = create_dat_samples(n_neurons, img_size)
     stack_imgs = tf.reduce_sum(one_hot_imgs, axis=0)
     return tf.expand_dims(stack_imgs, axis=0)  # (1, img_size, img_size, 1)
 
@@ -322,8 +322,7 @@ def duplicate_batch(inp_img, batch_size):
 
     return duplicated images along axis 0, (batch_size, img_size, img_size, 1)
     '''
-    if tf.rank(inp_img) != 4:
-        inp_img = tf.expand_dims(inp_img, 0)
+    inp_img = tf.expand_dims(inp_img, 0)
     m2 = tf.constant([batch_size, 1, 1, 1], tf.int32)  # multiplier for tiling
     duplicate_imgs = tf.tile(inp_img, m2)
     return duplicate_imgs

@@ -7,7 +7,7 @@ from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.io
-from skimage.external import tifffile as sktiff
+# from skimage.external import tifffile as sktiff
 import skimage.color
 import skimage.io
 from contextlib import suppress

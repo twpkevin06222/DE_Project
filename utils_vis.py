@@ -162,12 +162,12 @@ def plot_feature_maps(inps, row_num, col_num, figsize):
     plt.tight_layout()
     plt.show()
 
-def overlapMasks(mask_truth, mask_predicted):
+def overlapMasks(mask_truth, mask_predicted, threshold = 0):
     '''
     This function can only plot the feature maps of a model
     :param mask_predicted: prediction
     :param mask_truth: ground truth
-
+    :threshold: threshold for predicted mask
     :return:
         Returns overlapping image of prediction and ground truth
     '''
@@ -179,7 +179,7 @@ def overlapMasks(mask_truth, mask_predicted):
     norm = colors.BoundaryNorm(bounds, cm.N)
 
     # mask_predicted = mask_predicted.numpy()
-    mask_predicted[mask_predicted > 0] = 5
+    mask_predicted[mask_predicted > threshold] = 5
 
     Image_mask = np.add(mask_truth, mask_predicted)
 
