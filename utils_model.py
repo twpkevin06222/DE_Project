@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 from coord_conv import CoordConv
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.layers import Conv2D, Dense, Flatten, Reshape, MaxPooling2D, UpSampling2D
+from tensorflow.keras.layers import Conv2D, Dense, Flatten, Reshape, MaxPooling2D, UpSampling2D, MaxPooling3D
 from tensorflow.keras.layers import InputLayer, Conv2DTranspose, Activation, BatchNormalization
 from tensorflow.keras.regularizers import l1
 
@@ -257,6 +257,21 @@ def create_ran_numbers(img_size):
     c2 = tf.convert_to_tensor(c2, dtype=None, dtype_hint=None, name=None)
     return c1, c2
 
+def create_ran_numbers_range(min_range, max_range):
+    '''
+    Function to create random coordinates
+
+    @param min_range: minimum range
+    @param max_range: maximum range
+    return:
+    random generated x,y coordinates within the range [min_range, max_range)
+    '''
+    c1 = np.random.randint(min_range, max_range, size=1)
+    c2 = np.random.randint(min_range, max_range, size=1)
+    c1 = tf.convert_to_tensor(c1, dtype=None, dtype_hint=None, name=None)
+    c2 = tf.convert_to_tensor(c2, dtype=None, dtype_hint=None, name=None)
+    return c1, c2
+
 
 @tf.function
 def create_tf_tilecords(coord_list, img_size):
@@ -281,7 +296,7 @@ def tf_create_onehotcords(dat):
     return y
 
 
-def create_dat_samples(n, img_size):
+def create_dat_samples(n, img_size, min_range = None, max_range = None, Range = True):
     '''
     Function to create stacks of coordinates, tiled coordinates, one hot images
     @param n: number of neurons
@@ -290,7 +305,10 @@ def create_dat_samples(n, img_size):
     tb = tf.TensorArray(tf.float32, size=0, dynamic_size=True)
     coords = tf.TensorArray(tf.float32, size=0, dynamic_size=True)
     for _ in tf.range(n):
-        dat = create_ran_numbers(img_size=img_size)
+        if not range:
+            dat = create_ran_numbers(img_size=img_size)
+        else:
+            dat = create_ran_numbers_range(min_range, max_range)
         b1, b2 = create_tf_tilecords(dat, 100)
         c1 = tf_create_onehotcords(dat)
         c1 = tf.expand_dims(c1, axis=2, name=None)
