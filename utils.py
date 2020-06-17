@@ -526,7 +526,12 @@ def similarity_multi(one_hot_imgs, similarity_score, thr=None):
     '''
     onehot_multi_sim = tf.einsum('ij,jklm->ijklm', similarity_score, one_hot_imgs) #(batch_size, n_neurons, img_size, img_size, 1)
     onehot_multi_sim = tf.squeeze(tf.reduce_sum(onehot_multi_sim, axis=1))
-    if thr:
+    if thr=='mean':
+        ta = tf.TensorArray(tf.float32, size=0, dynamic_size=True)
+        for i in tf.range(len(onehot_multi_sim)):
+            ta = ta.write(i, tf.where(onehot_multi_sim[i]<tf.math.reduce_mean(onehot_multi_sim[i]),0.0,onehot_multi_sim[i]))
+        onehot_multi_sim = tf.convert_to_tensor(ta.stack())
+    elif type(thr)==float:
         onehot_multi_sim = tf.where(onehot_multi_sim<thr,0.0,onehot_multi_sim)
     return  onehot_multi_sim# (batch_size, img_size, img_size)
 
