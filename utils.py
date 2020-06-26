@@ -13,18 +13,40 @@ import skimage.io
 from contextlib import suppress
 import tensorflow as tf
 
-def min_max_norm(images):
+def min_max_norm(images, norm_axis = 'channel_wise'):
     """
     Min max normalization of images
     Parameters:
         images: Input stacked image list
+        norm_axis: axis where the normalize should be computed,
+            'channel_wise': min max norm along the channel
+            'frame_wise': min max norm frame wise
     Return:
         Image list after min max normalization
     """
-    m = np.max(images)
-    mi = np.min(images)
-    images = (images - mi)/ (m - mi)
-    return images
+    assert norm_axis=='channel_wise' or norm_axis=='frame_wise',\
+    "Please input 'channel_wise' or 'frame_wise'"
+    if norm_axis == 'channel_wise':
+        m = np.max(images) #max val along the channel
+        mi = np.min(images) #min val along the channel
+        output = (images - mi)/ (m - mi)
+    elif norm_axis == 'frame_wise':
+        #tile the tensor with respect to input image
+        # so that the substaction with max and min val can be broadcasted
+        tile_coef = tf.constant([1,100,100,1], tf.int32)
+        #tile max
+        #reduce max val along the axis 1 & 2
+        #(images.shape[0], 1, 1,1) images.shape[0]=>max val per frames
+        max_tensor = tf.reshape(tf.math.reduce_max(tf.math.reduce_max(images, 1),1), (-1,1,1,1))
+        tile_max = tf.tile(max_tensor, tile_coef)
+        #tile min
+        #reduce min val along the axis 1 & 2
+        #(images.shape[0], 1, 1,1) images.shape[0]=>min val per frames
+        min_tensor = tf.reshape(tf.math.reduce_min(tf.math.reduce_min(images, 1),1), (-1,1,1,1))
+        tile_min = tf.tile(min_tensor, tile_coef)
+        #compute min max frame wise
+        output = (images-tile_min)/(tile_max-tile_min)
+    return output
 
 
 def resize(img_list, NEW_SIZE, interpolation=cv2.INTER_LINEAR):
