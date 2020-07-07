@@ -574,11 +574,19 @@ def concat_recursive(a, b, max_count, count):
     if count == max_count - 1:
         return a
 
-
 def concat_batch(stack_batch_imgs):
-    stack_batch_imgs = tf.convert_to_tensor(stack_batch_imgs, tf.float32)
-    concat_imgs = concat_recursive(stack_batch_imgs, stack_batch_imgs, len(stack_batch_imgs), 0)
-    return concat_imgs
+    if tf.rank(tf.convert_to_tensor(stack_batch_imgs[0]))>=3:
+        stack_list = []
+        for i in range(len(stack_batch_imgs)):
+            slices = stack_batch_imgs[i]
+            slices = tf.convert_to_tensor(slices, tf.float32)
+            concat_imgs = concat_recursive(slices, slices, len(slices), 0)
+            stack_list.append(concat_imgs)
+        return stack_list
+    else:
+        stack_batch_imgs = tf.convert_to_tensor(stack_batch_imgs, tf.float32)
+        concat_imgs = concat_recursive(stack_batch_imgs, stack_batch_imgs, len(stack_batch_imgs), 0)
+        return concat_imgs
 
 def similarity_multiplication(similarity_list_npy, one_hot_imgs_list_npy, n_neurons, epoch_pos, img_size, threshold):
     stack_batch_imgs = []
