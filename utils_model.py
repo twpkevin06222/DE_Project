@@ -195,6 +195,7 @@ def dicesq_loss(y_true, y_pred):
     '''
     return 1- dicesq(y_true, y_pred)
 
+
 def getConfusionMatrix(mask_truth, mask_predicted):
     '''
     Computes confiusion matrix
@@ -207,27 +208,31 @@ def getConfusionMatrix(mask_truth, mask_predicted):
     mask_truth = np.multiply(mask_truth ,1)
     mask_predicted = mask_predicted > 0 
     mask_predicted = np.multiply(mask_predicted ,1)
+    pred_unique, pred_counts = np.unique(mask_predicted, return_counts=True)
+
 
     #True Positives: Predicted correctly as Neuron 
     overlap = np.multiply(mask_truth ,mask_predicted)
     unique, counts = np.unique(overlap, return_counts=True)
-    TP = counts[1] / overlap.size
+    TP = counts[1] / pred_counts[1]
+    
 
     # False Positives: Predicted as neuron, but is no neuron
     FPmask = np.subtract(mask_truth, mask_predicted)
     FP = np.count_nonzero(FPmask == -1)
-    FP = FP / FPmask.size
+    FP = FP / pred_counts[1]
+
 
     # False Negatives: Is Neuron but was not predicted
     FNmask = np.subtract(mask_predicted, mask_truth)
     FN = np.count_nonzero(FNmask == -1)
-    FN = FN / FNmask.size
+    FN = FN / pred_counts[0]
+
     
     #True Nagatives: Is correctly recognized as no neuron
-    TN = 1 - TP - FP - FN
+    TN = 1 - FN
 
     return TP, FP, FN, TN
-
 
 def f1score(confMatrix): 
     '''
