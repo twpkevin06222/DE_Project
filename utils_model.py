@@ -214,25 +214,26 @@ def getConfusionMatrix(mask_truth, mask_predicted):
     #True Positives: Predicted correctly as Neuron 
     overlap = np.multiply(mask_truth ,mask_predicted)
     unique, counts = np.unique(overlap, return_counts=True)
+    TP_total = counts[1]
     TP = counts[1] / pred_counts[1]
     
 
     # False Positives: Predicted as neuron, but is no neuron
     FPmask = np.subtract(mask_truth, mask_predicted)
-    FP = np.count_nonzero(FPmask == -1)
-    FP = FP / pred_counts[1]
+    FP_total = np.count_nonzero(FPmask == -1)
+    FP = FP_total / pred_counts[1]
 
 
     # False Negatives: Is Neuron but was not predicted
     FNmask = np.subtract(mask_predicted, mask_truth)
-    FN = np.count_nonzero(FNmask == -1)
-    FN = FN / pred_counts[0]
+    FN_total = np.count_nonzero(FNmask == -1)
+    FN = FN_total / pred_counts[0]
 
     
     #True Nagatives: Is correctly recognized as no neuron
     TN = 1 - FN
 
-    return TP, FP, FN, TN
+    return TP, FP, FN, TN, TP_total, FP_total, FN_total
 
 def f1score(confMatrix): 
     '''
